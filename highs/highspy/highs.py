@@ -1183,6 +1183,44 @@ class Highs(_Highs):
         else:
             super().changeColIntegrality(int(var_or_collection), HighsVarType.kContinuous)
 
+    @overload
+    def setSolution(self, solution: _core.HighsSolution) -> HighsStatus: ...
+    
+    @overload
+    def setSolution(
+        self,
+        num_entries: int,
+        indices: numpy.ndarray[typing.Any, numpy.dtype[numpy.int32]],
+        values: numpy.ndarray[typing.Any, numpy.dtype[numpy.float64]],
+    ) -> HighsStatus: ...
+
+    @overload
+    def setSolution(self, variables: Mapping[highs_var, float]) -> HighsStatus: ...
+
+    def setSolution(self, *args):
+        """
+        Sets user solution using:
+        - (variables: dict[highs_var, float]) - Convenience method
+        - (solution: HighsSolution) - Original method
+        - (num_entries: int, indices: np.ndarray, values: np.ndarray)
+        """
+        if len(args) == 1 and isinstance(args[0], Mapping):
+            variables = args[0]
+            indices = []
+            values = []
+            for var, value in variables.items():
+                indices.append(int(var))
+                values.append(float(value))
+            
+            # Call the C++ implementation (super)
+            return super().setSolution(
+                len(indices), 
+                np.array(indices, dtype=np.int32), 
+                np.array(values, dtype=np.float64)
+            )
+        else:
+            return super().setSolution(*args)
+
     @staticmethod
     def qsum(
         items: Union[Iterable[Union[highs_var, highs_linear_expression]], np.ndarray[Any, np.dtype[np.object_]]],
