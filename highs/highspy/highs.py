@@ -1201,18 +1201,18 @@ class Highs(_Highs):
         """
         Sets user solution using:
         - (variables: dict[highs_var, float]) - Convenience method
-        - (solution: HighsSolution) - Original method
-        - (num_entries: int, indices: np.ndarray, values: np.ndarray)
+        - (num_entries: int, indices: np.ndarray, values: np.ndarray) - Underlying sparse method
+        - (solution: HighsSolution)
         """
+        # Implement convenience method
         if len(args) == 1 and isinstance(args[0], Mapping):
-            variables = args[0]
             indices = []
             values = []
-            for var, value in variables.items():
+            for var, value in args[0].items():
                 indices.append(int(var))
                 values.append(float(value))
             
-            # Call the C++ implementation (super)
+            # Call underlying method
             return super().setSolution(
                 len(indices), 
                 np.array(indices, dtype=np.int32), 
